@@ -1,21 +1,37 @@
-struct Personality {
-    aggressiveness : Option<f32>,
-    empathy : Option<f32>,
-    lazyness : Option<f32>
+use rand::Rng;
+
+
+#[derive(Clone, Copy, Debug)]
+struct Job {
+    job_type : u8
 }
 
-struct Person {
-    personality : Personality
+#[derive(Debug)]
+struct World {
+    paths : [[u32; 10]; 10],
+    jobs : [[Job; 10]; 10]
 }
+
 
 fn main() {
-    let test = Person {
-        personality : Personality {
-            aggressiveness : Some(0.1),
-            empathy : Some(0.8),
-            lazyness : Some(-0.3)
-        }
+    let world : World = World {
+        paths : [[rand::thread_rng().gen_range(0..2); 10]; 10],
+        jobs : [[Job { job_type : rand::thread_rng().gen_range(0..2) }; 10]; 10]
     };
 
-    println!("{:?}", test.personality.aggressiveness.unwrap());
+    for i in 0..10 {
+        for j in 0..10 {
+            print!("{} ", world.paths[i][j]);
+        }
+        print!("\n");
+    }
+    
+    println!();
+    
+    for i in 0..10 {
+        for j in 0..10 {
+            print!("{} ", world.jobs[i][j].job_type);
+        }
+        print!("\n");
+    }
 }

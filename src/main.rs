@@ -1,6 +1,7 @@
 mod matrix_generator;
 use colored::*;
-use std::io;
+use std::io::{self, Write};
+use std::fs::File;
 
 
 const MATRIX_SIZE : usize = 50;
@@ -19,8 +20,14 @@ struct World {
     world         : Vec<Vec<usize>>
 }
 
+const GENERATE_INPUT_OPTIONS : [&str; 3] = ["generate", "gen", "g"];
+const EXIT_INPUT_OPTIONS : [&str; 3] = ["exit", "quit", "q"];
+const SAVE_INPUT_OPTIONS : [&str; 2] = ["save", "s"];
+const LOAD_INPUT_OPTIONS : [&str; 2] = ["load", "l"];
 
-fn main() {
+
+
+fn main() -> std::io::Result<()>{
 
     //                              [0, 1]
     let job_distribution_weights  = [4, 1];
@@ -28,13 +35,20 @@ fn main() {
     
     let mut input : String = "".to_string();
 
-    while input.to_lowercase() != "q".to_string() {
+    loop {
         input.clear();
         io::stdin().read_line(&mut input).expect("failed to read line");
         input.pop();
 
-        if input.to_lowercase() == "generate".to_string() {
-            let mut world : World = World {
+        let mut world : World = World {
+                paths : (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect(),
+                altered_paths : (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect(),
+                jobs : (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect(),
+                world : (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect()
+            };
+
+        if GENERATE_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
+            world = World {
                 paths : matrix_generator::random_matrix_with_weights(path_distribution_weights.to_vec(), MATRIX_SIZE),
                 altered_paths : (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect(),
                 jobs : matrix_generator::random_matrix_with_weights(job_distribution_weights.to_vec(), MATRIX_SIZE),
@@ -70,10 +84,33 @@ fn main() {
         
             println!();
 
-        } else if input.to_lowercase() == "save".to_string() {
-            println!("Still to implement");
+        } else if SAVE_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
+            input.clear();
+            io::stdin().read_line(&mut input).expect("failed to read line");
+            // input.pop();
+            
+            let mut file = File::create(input.clone())?;
+            
+            world.world.iter().for_each(|i| 
+                { 
+                    i.iter().for_each(|j| 
+                        { 
+                            let _ = file.write(&j.to_ne_bytes()); 
+                        });
+                    let _ = file.write("\n".as_bytes());
+                });
+        } else if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
+            break;
+        }
+        else {
+            println!("The '{}' command does not exist. 
+                Try:\n\t
+                > 'exit'\n\t
+                > 'generate'\n\t
+                > 'save [FILE/PATH/WITH_NAME]'\n\t
+                > 'load [FILE_PATH]'", input);
         }
     }
 
-
+    Ok(())
 }

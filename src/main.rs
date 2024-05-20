@@ -21,9 +21,10 @@ struct World {
 }
 
 const GENERATE_INPUT_OPTIONS : [&str; 3] = ["generate", "gen", "g"];
-const EXIT_INPUT_OPTIONS : [&str; 3] = ["exit", "quit", "q"];
-const SAVE_INPUT_OPTIONS : [&str; 2] = ["save", "s"];
-const LOAD_INPUT_OPTIONS : [&str; 2] = ["load", "l"];
+const EXIT_INPUT_OPTIONS     : [&str; 3] = ["exit", "quit", "q"];
+const SAVE_INPUT_OPTIONS     : [&str; 2] = ["save", "s"];
+const LOAD_INPUT_OPTIONS     : [&str; 2] = ["load", "l"];
+const CLEAR_INPUT_OPTIONS    : [&str; 2] = ["clear", "clr"];
 
 
 
@@ -34,18 +35,19 @@ fn main() -> std::io::Result<()>{
     let path_distribution_weights = [2, 1];
     
     let mut input : String = "".to_string();
+    
+    let mut world : World = World {
+            paths : (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect(),
+            altered_paths : (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect(),
+            jobs : (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect(),
+            world : (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect()
+        };
 
     loop {
         input.clear();
         io::stdin().read_line(&mut input).expect("failed to read line");
         input.pop();
 
-        let mut world : World = World {
-                paths : (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect(),
-                altered_paths : (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect(),
-                jobs : (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect(),
-                world : (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect()
-            };
 
         if GENERATE_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             world = World {
@@ -60,9 +62,9 @@ fn main() -> std::io::Result<()>{
                 Does not directly alter paths, only uses it as base
                 altered_paths is the final matrix with the smoothing results
             */
-            world.altered_paths = matrix_generator::smooth_binary_matrix_ones(&world.paths, SMOOTH_PASS_MAX);
+            world.altered_paths = matrix_generator::smooth_binary_matrix_ones(&world.paths, SMOOTH_PASS_MAX).clone();
             
-            world.world = matrix_generator::sum_matrices(&world.altered_paths, &world.world);
+            world.world = matrix_generator::sum_matrices(&world.altered_paths, &world.world).clone();
         
             
             // * Print the generated matrices for better visualization
@@ -81,34 +83,42 @@ fn main() -> std::io::Result<()>{
                 }
                 println!();
             }
-        
             println!();
 
         } else if SAVE_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
-            input.clear();
-            io::stdin().read_line(&mut input).expect("failed to read line");
-            // input.pop();
             
-            let mut file = File::create(input.clone())?;
-            
+            let mut world_matrix_string : String = String::new();
+
             world.world.iter().for_each(|i| 
                 { 
                     i.iter().for_each(|j| 
                         { 
-                            let _ = file.write(&j.to_ne_bytes()); 
+                            world_matrix_string.push_str(&j.to_string());
                         });
-                    let _ = file.write("\n".as_bytes());
+                    world_matrix_string.push_str("\n");
                 });
+
+            // println!("{}", world_matrix_string);
+            
+            input.clear();
+            io::stdin().read_line(&mut input).expect("failed to read line");
+            input.pop();
+
+            if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) { break; }
+            
+            let mut file = File::create(input.clone())?;
+
+            let _ = file.write_all(world_matrix_string.as_bytes());
+
+            println!("File saved as {}", input);
+
         } else if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             break;
+        } else if CLEAR_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
+            std::process::Command::new("clear").status().unwrap();
         }
         else {
-            println!("The '{}' command does not exist. 
-                Try:\n\t
-                > 'exit'\n\t
-                > 'generate'\n\t
-                > 'save [FILE/PATH/WITH_NAME]'\n\t
-                > 'load [FILE_PATH]'", input);
+            println!("The '{}' command does not exist.", input);
         }
     }
 

@@ -1,6 +1,7 @@
 mod matrix_generator;
+mod path_finding;
 use colored::*;
-use std::io::{self, Write};
+use std::io::{self, Write, Read};
 use std::fs::File;
 
 
@@ -25,6 +26,7 @@ const EXIT_INPUT_OPTIONS     : [&str; 3] = ["exit", "quit", "q"];
 const SAVE_INPUT_OPTIONS     : [&str; 2] = ["save", "s"];
 const LOAD_INPUT_OPTIONS     : [&str; 2] = ["load", "l"];
 const CLEAR_INPUT_OPTIONS    : [&str; 2] = ["clear", "clr"];
+const PRINT_INPUT_OPTIONS    : [&str; 2] = ["print", "p"];
 
 
 
@@ -65,25 +67,8 @@ fn main() -> std::io::Result<()>{
             world.altered_paths = matrix_generator::smooth_binary_matrix_ones(&world.paths, SMOOTH_PASS_MAX).clone();
             
             world.world = matrix_generator::sum_matrices(&world.altered_paths, &world.world).clone();
-        
-            
-            // * Print the generated matrices for better visualization
-            println!();
-            println!("{}", "World matrix");
-            for i in 0..world.world.len() {
-                for j in 0..world.world.len() {
-                    match world.world[i][j] {
-                        0 => print!("{} ", world.world[i][j].to_string().red()),
-                        1 => print!("{} ", world.world[i][j].to_string().green()),
-                        2 => print!("{} ", world.world[i][j].to_string().blue()),
-                        3 => print!("{} ", world.world[i][j].to_string().yellow()),
-                        4 => print!("{} ", world.world[i][j].to_string().magenta()),
-                        _ => print!("{} ", world.world[i][j])
-                    }
-                }
-                println!();
-            }
-            println!();
+
+            print_matrix(&world.world);
 
         } else if SAVE_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             
@@ -94,11 +79,10 @@ fn main() -> std::io::Result<()>{
                     i.iter().for_each(|j| 
                         { 
                             world_matrix_string.push_str(&j.to_string());
+                            world_matrix_string.push_str(" ");
                         });
                     world_matrix_string.push_str("\n");
                 });
-
-            // println!("{}", world_matrix_string);
             
             input.clear();
             io::stdin().read_line(&mut input).expect("failed to read line");
@@ -112,10 +96,45 @@ fn main() -> std::io::Result<()>{
 
             println!("File saved as {}", input);
 
-        } else if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
-            break;
+        } else if LOAD_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
+
+            input.clear();
+            io::stdin().read_line(&mut input).expect("failed to read line");
+            input.pop();
+
+            if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) { break; }
+
+            let mut file = File::open(input.clone())?;
+
+            let mut contents : String = String::new();
+
+            file.read_to_string(&mut contents)?;
+
+            let mut holder_matrix : Vec<Vec<usize>> = (0..MATRIX_SIZE).map(|_| { (0..MATRIX_SIZE).map(|_| 0).collect()}).collect();
+            let mut i : usize = 0;
+            let mut j : usize = 0;
+
+            for line in contents.split("\n") {
+                for num in line.split(" ") {
+                    if num == "" { continue; }
+                    holder_matrix[i][j] = num.parse::<usize>().unwrap();
+                    j += 1;
+                }
+                j = 0;
+                i += 1;
+                if i >= MATRIX_SIZE { break }
+            }
+
+            world.world = holder_matrix.clone();
+
+            println!("File successfully loaded");
+
         } else if CLEAR_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             std::process::Command::new("clear").status().unwrap();
+        } else if PRINT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
+            print_matrix(&world.world);
+        } else if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
+            break;
         }
         else {
             println!("The '{}' command does not exist.", input);
@@ -123,4 +142,24 @@ fn main() -> std::io::Result<()>{
     }
 
     Ok(())
+}
+
+fn print_matrix(matrix : &Vec<Vec<usize>>) {
+    // * Print the generated matrices for better visualization
+    println!();
+    println!("{}", "World matrix");
+    for i in 0..matrix.len() {
+        for j in 0..matrix.len() {
+            match matrix[i][j] {
+                0 => print!("{} ", matrix[i][j].to_string().red()),
+                1 => print!("{} ", matrix[i][j].to_string().green()),
+                2 => print!("{} ", matrix[i][j].to_string().blue()),
+                3 => print!("{} ", matrix[i][j].to_string().yellow()),
+                4 => print!("{} ", matrix[i][j].to_string().magenta()),
+                _ => print!("{} ", matrix[i][j])
+            }
+        }
+        println!();
+    }
+    println!();
 }

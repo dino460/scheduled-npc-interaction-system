@@ -5,7 +5,7 @@ use std::io::{self, Write, Read};
 use std::fs::File;
 
 
-const MATRIX_SIZE : usize = 10;
+const MATRIX_SIZE : usize = 50;
 const SMOOTH_PASS_MAX : usize = 2;
 
 #[derive(Clone, Copy, Debug)]
@@ -25,7 +25,7 @@ const GENERATE_INPUT_OPTIONS : [&str; 3] = ["generate", "gen", "g"];
 const EXIT_INPUT_OPTIONS     : [&str; 3] = ["exit", "quit", "q"];
 const SAVE_INPUT_OPTIONS     : [&str; 2] = ["save", "s"];
 const LOAD_INPUT_OPTIONS     : [&str; 2] = ["load", "l"];
-const CLEAR_INPUT_OPTIONS    : [&str; 2] = ["clear", "clr"];
+const CLEAR_INPUT_OPTIONS    : [&str; 3] = ["clear", "clr", "c"];
 const PRINT_INPUT_OPTIONS    : [&str; 2] = ["print", "p"];
 const FIND_INPUT_OPTIONS     : [&str; 2] = ["find", "f"];
 
@@ -158,7 +158,7 @@ fn main() -> std::io::Result<()>{
 
             print_matrix(&world.world);
 
-            println!("{}", path_finding::bfs_pathfinder(&world.world, (x_source, y_source, 0), (x_dest, y_dest, 0)));
+            println!("{}", path_finding::bfs_pathfinder(&world.world, (x_source as i32, y_source as i32), (x_dest as i32, y_dest as i32)));
         
         } else if CLEAR_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             std::process::Command::new("clear").status().unwrap();

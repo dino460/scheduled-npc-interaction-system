@@ -3,7 +3,6 @@ mod path_finding;
 mod gui;
 mod structures;
 
-
 use gui::*;
 use structures::*;
 
@@ -20,6 +19,7 @@ fn main() -> std::io::Result<()>{
 
     let mut matrix_size : usize = 50;
     let mut print_generation_result : bool = true;
+    let mut show_commands : bool = true;
 
     //                              [0, 1]
     let job_distribution_weights  = [4, 1];
@@ -33,15 +33,22 @@ fn main() -> std::io::Result<()>{
             jobs : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect(),
             world : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect()
         };
- 
+
+    print_title();
+    print_greeting_tutorial();
+
     loop {
-        input = match read_input::<String>(input.clone(), "", "") {
-            Ok(value) => value,
-            _         => break
+        let hide_gen_indicator = if print_generation_result { print_generation_result.to_string().green().to_string() } else { print_generation_result.to_string().red().to_string() };
+        let command_indication = if show_commands { show_commands.to_string().green().to_string() } else { show_commands.to_string().red().to_string() };
+        
+        input = match read_input::<String>(input.clone(), "", "<<< Type you command >>>".cyan().to_string().as_str()) {
+            Ok(value)  => value,
+            Err(value) => value.to_string()
         };
 
         if GENERATE_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             
+            let now = Instant::now();
             generate_world(&mut world, matrix_size, path_distribution_weights, job_distribution_weights);
             /*
                 Does the smoothing process in a number of passes
@@ -50,8 +57,11 @@ fn main() -> std::io::Result<()>{
             */
             world.altered_paths = matrix_generator::smooth_binary_matrix_ones(&world.paths, SMOOTH_PASS_MAX).clone();
             world.world = matrix_generator::sum_matrices(&world.altered_paths, &world.world).clone();
+            let elapsed = now.elapsed();
+
             if print_generation_result { print_matrix(&world.world); }
-            println!("{}", "Generation successful".green());
+            println!("{} {} s", "Generated successfully in".green(), elapsed.as_secs_f32().to_string().bright_yellow());
+            println!();
 
         } else if SAVE_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             
@@ -67,7 +77,7 @@ fn main() -> std::io::Result<()>{
                     world_matrix_string.push_str("\n");
                 });
             
-            input = match read_input::<String>(input.clone(), "", "> Type the name of the file to save (with extension)") {
+            input = match read_input::<String>(input.clone(), "", &("> Type the name of the file to save".to_string() + &" (with extension)".bright_yellow().to_string())) {
                 Ok(value) => value,
                 _         => continue,
             };
@@ -80,7 +90,7 @@ fn main() -> std::io::Result<()>{
 
         } else if LOAD_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
 
-            input = match read_input::<String>(input.clone(), "", "> Type the name of the file to load (with extension)") {
+            input = match read_input::<String>(input.clone(), "", &("> Type the name of the file to load".to_string() + &" (with extension)".bright_yellow().to_string())) {
                 Ok(value) => value,
                 _         => continue,
             };
@@ -113,7 +123,7 @@ fn main() -> std::io::Result<()>{
 
         } else if FIND_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
 
-            let x_source : usize =  match read_input::<usize>(input.clone(), "\t", "\t> Source X coordinate value:".blue().to_string().as_str()) {
+            let x_source : usize =  match read_input::<usize>(input.clone(), "\t", "\t> Source X coordinate value:".yellow().to_string().as_str()) {
                 Ok(value) => value,
                 _         => continue,
             };
@@ -123,7 +133,7 @@ fn main() -> std::io::Result<()>{
             }
             println!();
 
-            let y_source : usize =  match read_input::<usize>(input.clone(), "\t", "\t> Source Y coordinate value:".blue().to_string().as_str()) {
+            let y_source : usize =  match read_input::<usize>(input.clone(), "\t", "\t> Source Y coordinate value:".yellow().to_string().as_str()) {
                 Ok(value) => value,
                 _         => continue,
             };
@@ -135,7 +145,7 @@ fn main() -> std::io::Result<()>{
 
             world.world[x_source][y_source] = 2;
 
-            let x_dest : usize =  match read_input::<usize>(input.clone(), "\t", "\t> Destination X coordinate value:".blue().to_string().as_str()) {
+            let x_dest : usize =  match read_input::<usize>(input.clone(), "\t", "\t> Destination X coordinate value:".yellow().to_string().as_str()) {
                 Ok(value) => value,
                 _         => continue,
             };
@@ -145,7 +155,7 @@ fn main() -> std::io::Result<()>{
             }
             println!();
 
-            let y_dest : usize =  match read_input::<usize>(input.clone(), "\t", "\t> Destination Y coordinate value:".blue().to_string().as_str()) {
+            let y_dest : usize =  match read_input::<usize>(input.clone(), "\t", "\t> Destination Y coordinate value:".yellow().to_string().as_str()) {
                 Ok(value) => value,
                 _         => continue,
             };
@@ -161,7 +171,7 @@ fn main() -> std::io::Result<()>{
             let mut dest = Point { i: Some(x_dest as i32), j: Some(y_dest as i32), distance: None, previous: None };
 
 
-            let use_diagonals : bool = match read_input_to_bool(input.clone(), "\t", "\t> Compute diagonal movement? [y, yes | n, no] (High performance impact)".blue().to_string().as_str()) {
+            let use_diagonals : bool = match read_input_to_bool(input.clone(), "\t", &("\t> Compute diagonal movement? [y, yes | n, no]".yellow().to_string() + " (High performance impact)".red().to_string().as_str())) {
                 Ok(value) => value,
                 _         => continue,
             };
@@ -178,13 +188,13 @@ fn main() -> std::io::Result<()>{
             );
             let elapsed = now.elapsed();
 
-            println!("Path exists from ({}, {}) to ({}, {}) : {}", 
+            println!("Path from ({}, {}) to ({}, {}) : {}", 
                 x_source, y_source,
                 x_dest, y_dest,
                 if path_exists { path_exists.to_string().green() } else { path_exists.to_string().red() }
             );
 
-            println!("Time it took to process: {:.4?}", elapsed);
+            println!("Time to process: {} s", elapsed.as_secs_f32().clamp(0.0001, 1000.0).to_string().bright_yellow());
 
             let mut path = dest.previous.clone();
 
@@ -199,24 +209,32 @@ fn main() -> std::io::Result<()>{
 
             generate_zero_world(&mut world, matrix_size);
 
-        } else if SHOW_GEN_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
+        } else if HIDE_COMMAND_OPTIONS.contains(&input.to_lowercase().as_str()) {
+            show_commands = !show_commands;
+        }else if HIDE_GEN_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             print_generation_result = !print_generation_result;
         } else if CLEAR_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
-            std::process::Command::new("clear").status().unwrap();
+            clear_screen();
         } else if PRINT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             print_matrix(&world.world);
         } else if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
+            println!("{}", "Exiting...".red().bold());
+            let _ = stdout().flush();
             break;
         }
         else {
             println!("The '{}' command does not exist.", input);
+            if show_commands { print_greeting_tutorial(); }
         }
     }
 
     Ok(())
 }
 
-fn read_input<T: std::str::FromStr + 'static>(mut input : String, at_text : &str, pre_text : &str) -> Result<T, &'static str> where <T as std::str::FromStr>::Err: std::fmt::Debug {
+fn read_input<T: std::str::FromStr + 'static>(
+    mut input : String, at_text : &str, 
+    pre_text : &str
+) -> Result<T, &'static str> where <T as std::str::FromStr>::Err: std::fmt::Debug {
     
     println!("{}", pre_text);
     print!("{}({}): ", at_text, std::any::type_name::<T>().to_string().italic().dimmed());
@@ -227,8 +245,6 @@ fn read_input<T: std::str::FromStr + 'static>(mut input : String, at_text : &str
 
     if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) { 
         return Result::Err(EXIT_INPUT_OPTIONS[0]);
-    } else if STOP_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
-        return Result::Err(STOP_INPUT_OPTIONS[0]);
     }
 
     return Result::Ok(input.parse::<T>().unwrap());
@@ -245,8 +261,6 @@ fn read_input_to_bool(mut input : String, at_text : &str, pre_text : &str) -> Re
 
     if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) { 
         return Result::Err(EXIT_INPUT_OPTIONS[0]);
-    } else if STOP_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
-        return Result::Err(STOP_INPUT_OPTIONS[0]);
     }
 
     return match input.as_str() {

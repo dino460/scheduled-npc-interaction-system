@@ -3,6 +3,10 @@ use colored::*;
 pub const VERSION_NUMBER : &str = "0.1.0";
 pub const VERSION_TYPE   : &str = "α";
 
+pub const ERROR_SYMBOL   : &str = "(!)";
+pub const INFO_SYMBOL    : &str = "(*)";
+pub const WARNING_SYMBOL : &str = "(?)";
+
 pub const GENERATE_INPUT_OPTIONS : [&str; 3] = ["generate", "gen", "g"];
 pub const EXIT_INPUT_OPTIONS     : [&str; 3] = ["exit", "quit", "q"];
 pub const SAVE_INPUT_OPTIONS     : [&str; 2] = ["save", "s"];
@@ -71,8 +75,13 @@ pub fn print_greeting_tutorial() {
     println!("{}{:?}", " - Exit program                 : ".italic().dimmed(), EXIT_INPUT_OPTIONS);
     println!("========================================================================");
     // println!();
-    println!("{}", "Input format:".bold());
-    println!("\" {}{}{}{} \"", "(".italic(), "input::type".italic().dimmed(), "):".italic(), " Your input comes here".italic());
+    println!("{}", "Input field:".bold());
+    println!("\" {}{}{}{}{} \"", 
+        "[show map on gen|show commands] ".italic().green(), 
+        "(".italic().cyan(), 
+        "input::type".italic().dimmed().cyan(), 
+        "):".italic().cyan(), 
+        " Your input comes here".italic().blue());
     println!();
 }
 

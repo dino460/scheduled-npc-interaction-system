@@ -38,10 +38,22 @@ fn main() -> std::io::Result<()>{
     print_greeting_tutorial();
 
     loop {
-        let hide_gen_indicator = if print_generation_result { print_generation_result.to_string().green().to_string() } else { print_generation_result.to_string().red().to_string() };
-        let command_indication = if show_commands { show_commands.to_string().green().to_string() } else { show_commands.to_string().red().to_string() };
-        
-        input = match read_input::<String>(input.clone(), "", "<<< Type you command >>>".cyan().to_string().as_str()) {
+        let hide_gen_indicator = if print_generation_result { 
+            print_generation_result.to_string().green().to_string() 
+        } else { 
+            print_generation_result.to_string().red().to_string() 
+        };
+        let command_indication = if show_commands { 
+            show_commands.to_string().green().to_string() 
+        } else { 
+            show_commands.to_string().red().to_string() 
+        };
+
+        input = match read_input::<String>(
+            input.clone(), 
+            &("[".to_string() + &hide_gen_indicator + "|" + &command_indication + "] "), 
+            "<<< Type you command >>>".cyan().to_string().as_str()) 
+        {
             Ok(value)  => value,
             Err(value) => value.to_string()
         };
@@ -97,7 +109,13 @@ fn main() -> std::io::Result<()>{
 
             if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) { break; }
 
-            let mut file = File::open(input.clone())?;
+            let mut file : File = match File::open(input.clone()) {
+                Ok(file) => file,
+                _ => {
+                    println!("{} {}", ERROR_SYMBOL.red().blink(), format!("File '{}' does not exist.", input).red());
+                    continue;
+                }
+            };
             let mut contents : String = String::new();
 
             file.read_to_string(&mut contents)?;
@@ -128,7 +146,7 @@ fn main() -> std::io::Result<()>{
                 _         => continue,
             };
             if x_source >= matrix_size {
-                println!("\tValue out of bonds 0..{}", matrix_size - 1);
+                println!("\t{} {} 0..{}", WARNING_SYMBOL.bright_yellow().blink(), "Value out of bounds".bright_yellow(), matrix_size - 1);
                 continue;
             }
             println!();
@@ -138,7 +156,7 @@ fn main() -> std::io::Result<()>{
                 _         => continue,
             };
             if y_source >= matrix_size {
-                println!("\tValue out of bonds 0..{}", matrix_size - 1);
+                println!("\t{} {} 0..{}", WARNING_SYMBOL.bright_yellow().blink(), "Value out of bounds".bright_yellow(), matrix_size - 1);
                 continue;
             }
             println!();
@@ -150,7 +168,7 @@ fn main() -> std::io::Result<()>{
                 _         => continue,
             };
             if x_dest >= matrix_size {
-                println!("\tValue out of bonds 0..{}", matrix_size - 1);
+                println!("\t{} {} 0..{}", WARNING_SYMBOL.bright_yellow().blink(), "Value out of bounds".bright_yellow(), matrix_size - 1);
                 continue;
             }
             println!();
@@ -160,7 +178,7 @@ fn main() -> std::io::Result<()>{
                 _         => continue,
             };
             if y_dest >= matrix_size {
-                println!("\tValue out of bonds 0..{}", matrix_size - 1);
+                println!("\t{} {} 0..{}", WARNING_SYMBOL.bright_yellow().blink(), "Value out of bounds".bright_yellow(), matrix_size - 1);
                 continue;
             }
             println!();
@@ -218,7 +236,7 @@ fn main() -> std::io::Result<()>{
         } else if PRINT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             print_matrix(&world.world);
         } else if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
-            println!("{}", "Exiting...".red().bold());
+            println!("\n{}", "Exiting...\n".red().bold());
             let _ = stdout().flush();
             break;
         }
@@ -247,7 +265,12 @@ fn read_input<T: std::str::FromStr + 'static>(
         return Result::Err(EXIT_INPUT_OPTIONS[0]);
     }
 
-    return Result::Ok(input.parse::<T>().unwrap());
+    let result = match input.parse::<T>() {
+        Ok(value) => value,
+        _ => return Result::Err(EXIT_INPUT_OPTIONS[0])
+    };
+
+    return Result::Ok(result);
 }
 
 fn read_input_to_bool(mut input : String, at_text : &str, pre_text : &str) -> Result<bool, &'static str> {

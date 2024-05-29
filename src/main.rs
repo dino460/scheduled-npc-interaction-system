@@ -2,12 +2,15 @@ mod matrix_generator;
 mod path_finding;
 mod gui;
 mod structures;
+mod file_manipulation;
+mod world_manipulation;
 
 use gui::*;
 use structures::*;
+use file_manipulation::*;
+use world_manipulation::*;
 
-use std::io::{self, stdout, Read, Write};
-use std::fs::File;
+use std::io::{self, stdout, Write};
 use std::time::Instant;
 use colored::*;
 
@@ -59,85 +62,35 @@ fn main() -> std::io::Result<()>{
         };
 
         if GENERATE_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
-            
-            let now = Instant::now();
-            generate_world(&mut world, matrix_size, path_distribution_weights, job_distribution_weights);
-            /*
-                Does the smoothing process in a number of passes
-                Does not directly alter paths, only uses it as base
-                altered_paths is the final matrix with the smoothing results
-            */
-            world.altered_paths = matrix_generator::smooth_binary_matrix_ones(&world.paths, SMOOTH_PASS_MAX).clone();
-            world.world = matrix_generator::sum_matrices(&world.altered_paths, &world.world).clone();
-            let elapsed = now.elapsed();
-
-            if print_generation_result { print_matrix(&world.world); }
-            println!("{} {} s", "Generated successfully in".green(), elapsed.as_secs_f32().to_string().bright_yellow());
-            println!();
+            process_world_generation(&mut world, matrix_size, path_distribution_weights, job_distribution_weights, print_generation_result);
 
         } else if SAVE_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             
-            let mut world_matrix_string : String = String::new();
+            let save_result = save_world_to_file(&world, input.clone());
 
-            world.world.iter().for_each(|i| 
-                { 
-                    i.iter().for_each(|j| 
-                        { 
-                            world_matrix_string.push_str(&j.to_string());
-                            world_matrix_string.push_str(" ");
-                        });
-                    world_matrix_string.push_str("\n");
-                });
-            
-            input = match read_input::<String>(input.clone(), "", &("> Type the name of the file to save".to_string() + &" (with extension)".bright_yellow().to_string())) {
-                Ok(value) => value,
-                _         => continue,
-            };
-
-            if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) { break; }
-            
-            let mut file = File::create(input.clone())?;
-            let _ = file.write_all(world_matrix_string.as_bytes());
-            println!("{}", ("File saved as '".to_owned() + &input + "'").green());
+            match save_result {
+                Ok(value) => {
+                    if value == "halt" { continue; }
+                },
+                Err(value) => {
+                    println!("{}", value);
+                    break;
+                }
+            }
 
         } else if LOAD_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
 
-            input = match read_input::<String>(input.clone(), "", &("> Type the name of the file to load".to_string() + &" (with extension)".bright_yellow().to_string())) {
-                Ok(value) => value,
-                _         => continue,
-            };
+            let load_result = load_world_from_file(&mut world, matrix_size, input.clone());
 
-            if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) { break; }
-
-            let mut file : File = match File::open(input.clone()) {
-                Ok(file) => file,
-                _ => {
-                    println!("{} {}", ERROR_SYMBOL.red().blink(), format!("File '{}' does not exist.", input).red());
-                    continue;
+            match load_result {
+                Ok(value) => {
+                    if value == "halt" { continue; }
+                },
+                Err(value) => {
+                    println!("{}", value);
+                    break;
                 }
-            };
-            let mut contents : String = String::new();
-
-            file.read_to_string(&mut contents)?;
-
-            let mut holder_matrix : Vec<Vec<usize>> = (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect();
-            let mut i : usize = 0;
-            let mut j : usize = 0;
-
-            for line in contents.split("\n") {
-                for num in line.split(" ") {
-                    if num == "" { continue; }
-                    holder_matrix[i][j] = num.parse::<usize>().unwrap();
-                    j += 1;
-                }
-                j = 0;
-                i += 1;
-                if i >= matrix_size { break }
             }
-
-            world.world = holder_matrix.clone();
-
-            println!("{}", ("File '".to_owned() + &input + "' successfully loaded").green());
 
         } else if FIND_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
 
@@ -227,6 +180,14 @@ fn main() -> std::io::Result<()>{
 
             generate_zero_world(&mut world, matrix_size);
 
+        } else if SHOW_ALL_COMMANDS_OPTIONS.contains(&input.to_lowercase().as_str()) {
+            print_all_commands();
+        } else if RESET_SCREEN_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
+            print_title();
+            if show_commands { print_greeting_tutorial(); }
+        } else if input.to_lowercase() == "hide all" {
+            show_commands = false;
+            print_generation_result = false;
         } else if HIDE_COMMAND_OPTIONS.contains(&input.to_lowercase().as_str()) {
             show_commands = !show_commands;
         }else if HIDE_GEN_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
@@ -241,13 +202,14 @@ fn main() -> std::io::Result<()>{
             break;
         }
         else {
-            println!("The '{}' command does not exist.", input);
+            println!("{}{}{}{}", WARNING_SYMBOL.bright_yellow().blink(), " The '".bright_yellow(), input.bold(), "' command does not exist.".bright_yellow());
             if show_commands { print_greeting_tutorial(); }
         }
     }
 
     Ok(())
 }
+
 
 fn read_input<T: std::str::FromStr + 'static>(
     mut input : String, at_text : &str, 
@@ -294,31 +256,5 @@ fn read_input_to_bool(mut input : String, at_text : &str, pre_text : &str) -> Re
         "n"     => Result::Ok(false),
         "false" => Result::Ok(true),
         _       => Result::Ok(false)
-    };
-}
-
-fn generate_world(
-    world : &mut World, 
-    matrix_size : usize,
-    path_distribution_weights : [usize; 2],
-    job_distribution_weights : [usize; 2]
-) {
-    *world = World {
-        paths : matrix_generator::random_matrix_with_weights(path_distribution_weights.to_vec(), matrix_size),
-        altered_paths : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect(),
-        jobs : matrix_generator::random_matrix_with_weights(job_distribution_weights.to_vec(), matrix_size),
-        world : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect()
-    };
-}
-
-fn generate_zero_world(
-    world : &mut World, 
-    matrix_size : usize
-) {
-    *world = World {
-        paths : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect(),
-        altered_paths : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect(),
-        jobs : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect(),
-        world : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect()
     };
 }

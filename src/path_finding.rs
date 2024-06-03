@@ -27,17 +27,6 @@ pub fn pathfinder(
 				previous : None
 			};
 
-			// point_matrix[i][j].i = Some(i as i32);
-			// point_matrix[i][j].j = Some(j as i32);
-
-			// if i == source.i.unwrap() as usize && j == source.j.unwrap() as usize {
-			// 	point_matrix[i][j].distance = Some(0);
-			// } else {
-			// 	point_matrix[i][j].distance = Some(1000000);
-			// }
-
-			// point_matrix[i][j].previous = None;
-
 			if i == source.i.unwrap() as usize && j == source.j.unwrap() as usize { queue.push(point_matrix[i][j].clone()); }
 		}
 	}

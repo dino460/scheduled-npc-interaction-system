@@ -25,7 +25,10 @@ pub fn process_world_generation(
     let elapsed = now.elapsed();
 
     if print_generation_result { print_matrix(&world.world); }
-    println!("{} {} {} s", INFO_SYMBOL.green(), "Generated successfully in".green(), elapsed.as_secs_f32().to_string().bright_yellow());
+    println!("{} {} {} s", 
+        INFO_SYMBOL.truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2), 
+        "Generated successfully in".truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2), 
+        elapsed.as_secs_f32().to_string().bright_yellow());
     println!();
 }
 

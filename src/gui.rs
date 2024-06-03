@@ -2,7 +2,7 @@ use colored::*;
 
 /*
     VERSIONING RULES:
-    Scheduled NPC Interaction System v[W.X.Y.Z] (greek letter)
+    Scheduled NPC Interaction System v[W.X.Y.Z](greek letter)
         v : decoration -> stands for "version"
 
         W : major version/revision/rework
@@ -16,13 +16,20 @@ use colored::*;
             χ => release -> full release, ready for production and roll-out
             ν => nightly -> early release, somewhere between beta and release, suitable to test new minor or major features
 */
-pub const VERSION_NUMBER  : &str      = "0.1.1.0";
+
+pub const VERSION_NUMBER  : &str      = "0.1.2.0";
 pub const VERSION_TYPES   : [&str; 4] = ["α", "β", "χ", "ν"];
 pub const CURRENT_VERSION : usize     = 0;
 
 pub const ERROR_SYMBOL   : &str = "(!)";
-pub const INFO_SYMBOL    : &str = "(*)";
-pub const WARNING_SYMBOL : &str = "(?)";
+pub const WARNING_SYMBOL : &str = "(*)";
+pub const INFO_SYMBOL    : &str = "(-)";
+
+pub const WARNING_COLOR_LUT : [(u8, u8, u8); 3] = [
+    (255, 0  , 0), // ERROR
+    (252, 227, 3), // WARNING
+    (133, 153, 0)  // INFO
+];
 
 pub const GENERATE_INPUT_OPTIONS     : [&str; 3] = ["generate", "gen", "g"];
 pub const EXIT_INPUT_OPTIONS         : [&str; 3] = ["exit", "quit", "q"];
@@ -37,6 +44,14 @@ pub const HIDE_COMMAND_OPTIONS       : [&str; 5] = ["hide cmd", "hidecmd", "hc",
 pub const SHOW_ALL_COMMANDS_OPTIONS  : [&str; 3] = ["show all", "shall", "sa"];
 pub const RESET_SCREEN_INPUT_OPTIONS : [&str; 3] = ["reset", "rst", "r"];
 
+pub const MATRIX_COLOR_LUT : [(u8, u8, u8); 5] = [
+    (255, 0  , 0),
+    (0  , 205, 0),
+    (160, 214, 0),
+    (215, 167, 0),
+    (246, 109, 0)
+];
+
 
 pub fn print_matrix(matrix : &Vec<Vec<usize>>) {
     // * Print the generated matrices for better visualization
@@ -45,12 +60,14 @@ pub fn print_matrix(matrix : &Vec<Vec<usize>>) {
     for i in 0..matrix.len() {
         for j in 0..matrix.len() {
             match matrix[i][j] {
-                0 => print!("{} ", matrix[i][j].to_string().red()),
-                1 => print!("{} ", matrix[i][j].to_string().green()),
-                2 => print!("{} ", matrix[i][j].to_string().blue()),
-                3 => print!("{} ", matrix[i][j].to_string().bright_yellow()),
-                4 => print!("{} ", matrix[i][j].to_string().bright_blue()),
-                _ => print!("{} ", matrix[i][j])
+                // 0 => print!("{} ", matrix[i][j].to_string().red()),
+                // 1 => print!("{} ", matrix[i][j].to_string().green()),
+                // 2 => print!("{} ", matrix[i][j].to_string().blue()),
+                // 3 => print!("{} ", matrix[i][j].to_string().bright_yellow()),
+                // 4 => print!("{} ", matrix[i][j].to_string().bright_blue()),
+                value => print!("{} ", matrix[i][j]
+                    .to_string()
+                    .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2))
             }
         }
         println!();

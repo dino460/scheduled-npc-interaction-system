@@ -32,7 +32,9 @@ pub fn save_world_to_file(
     
     let mut file = File::create(input.clone())?;
     let _ = file.write_all(world_matrix_string.as_bytes());
-    println!("{} {}\n", INFO_SYMBOL.green(), ("File saved as '".to_owned() + &input + "'").green());
+    println!("{} {}\n", 
+        INFO_SYMBOL.truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2), 
+        ("File saved as '".to_owned() + &input + "'").truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2));
 
     return Result::Ok("ok".to_string());
 }
@@ -52,7 +54,9 @@ pub fn load_world_from_file(
     let file : Option<File> = match File::open(input.clone()) {
         Ok(file) => Some(file),
         _ => {
-            println!("{} {}\n", ERROR_SYMBOL.red().blink(), format!("File '{}' does not exist.", input).red());
+            println!("{} {}\n", 
+                ERROR_SYMBOL.truecolor(WARNING_COLOR_LUT[0].0, WARNING_COLOR_LUT[0].1, WARNING_COLOR_LUT[0].2).blink(), 
+                format!("File '{}' does not exist.", input).truecolor(WARNING_COLOR_LUT[0].0, WARNING_COLOR_LUT[0].1, WARNING_COLOR_LUT[0].2));
             None
         }
     };
@@ -77,7 +81,9 @@ pub fn load_world_from_file(
 
     world.world = holder_matrix.clone();
 
-    println!("{} {}\n", INFO_SYMBOL.green(), ("File '".to_owned() + &input + "' successfully loaded").green());
+    println!("{} {}\n", 
+        INFO_SYMBOL.truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2), 
+        ("File '".to_owned() + &input + "' successfully loaded").truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2));
 
     Ok("ok".to_string())
 }

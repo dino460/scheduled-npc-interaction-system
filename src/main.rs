@@ -24,6 +24,7 @@ fn main() -> std::io::Result<()>{
     let mut print_generation_result : bool = true;
     let mut show_commands : bool = true;
 
+    //TODO: Make it possible to change weights during runtime
     //                              [0, 1]
     let job_distribution_weights  = [4, 1];
     let path_distribution_weights = [2, 1];
@@ -42,14 +43,14 @@ fn main() -> std::io::Result<()>{
 
     loop {
         let hide_gen_indicator = if print_generation_result { 
-            print_generation_result.to_string().green().to_string() 
+            print_generation_result.to_string().truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2).to_string() 
         } else { 
-            print_generation_result.to_string().red().to_string() 
+            print_generation_result.to_string().truecolor(WARNING_COLOR_LUT[0].0, WARNING_COLOR_LUT[0].1, WARNING_COLOR_LUT[0].2).to_string() 
         };
         let command_indication = if show_commands { 
-            show_commands.to_string().green().to_string() 
+            show_commands.to_string().truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2).to_string() 
         } else { 
-            show_commands.to_string().red().to_string() 
+            show_commands.to_string().truecolor(WARNING_COLOR_LUT[0].0, WARNING_COLOR_LUT[0].1, WARNING_COLOR_LUT[0].2).to_string() 
         };
 
         input = match read_input::<String>(
@@ -99,7 +100,10 @@ fn main() -> std::io::Result<()>{
                 _         => continue,
             };
             if x_source >= matrix_size {
-                println!("\t{} {} 0..{}", WARNING_SYMBOL.bright_yellow().blink(), "Value out of bounds".bright_yellow(), matrix_size - 1);
+                println!("\t{} {} 0..{}", 
+                    WARNING_SYMBOL.truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2).blink(), 
+                    "Value out of bounds".truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2), 
+                    matrix_size - 1);
                 continue;
             }
             println!();
@@ -109,7 +113,10 @@ fn main() -> std::io::Result<()>{
                 _         => continue,
             };
             if y_source >= matrix_size {
-                println!("\t{} {} 0..{}", WARNING_SYMBOL.bright_yellow().blink(), "Value out of bounds".bright_yellow(), matrix_size - 1);
+                println!("\t{} {} 0..{}", 
+                    WARNING_SYMBOL.truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2).blink(), 
+                    "Value out of bounds".truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2), 
+                    matrix_size - 1);
                 continue;
             }
             println!();
@@ -121,7 +128,10 @@ fn main() -> std::io::Result<()>{
                 _         => continue,
             };
             if x_dest >= matrix_size {
-                println!("\t{} {} 0..{}", WARNING_SYMBOL.bright_yellow().blink(), "Value out of bounds".bright_yellow(), matrix_size - 1);
+                println!("\t{} {} 0..{}", 
+                    WARNING_SYMBOL.truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2).blink(), 
+                    "Value out of bounds".truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2), 
+                    matrix_size - 1);
                 continue;
             }
             println!();
@@ -131,13 +141,17 @@ fn main() -> std::io::Result<()>{
                 _         => continue,
             };
             if y_dest >= matrix_size {
-                println!("\t{} {} 0..{}", WARNING_SYMBOL.bright_yellow().blink(), "Value out of bounds".bright_yellow(), matrix_size - 1);
+                println!("\t{} {} 0..{}", 
+                    WARNING_SYMBOL.truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2).blink(), 
+                    "Value out of bounds".truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2), 
+                    matrix_size - 1);
                 continue;
             }
             println!();
 
             world.world[x_dest][y_dest] = 4;
 
+            //TODO: point_matrix can be moved inside pathfinding function
             let mut point_matrix : Vec<Vec<Point>> = (0..matrix_size).map(|_| { (0..matrix_size).map(|_| Point { i: None, j: None, distance: None, previous: None }).collect()}).collect();
             let mut dest = Point { i: Some(x_dest as i32), j: Some(y_dest as i32), distance: None, previous: None };
 
@@ -162,7 +176,11 @@ fn main() -> std::io::Result<()>{
             println!("Path from ({}, {}) to ({}, {}) : {}", 
                 x_source, y_source,
                 x_dest, y_dest,
-                if path_exists { path_exists.to_string().green() } else { path_exists.to_string().red() }
+                if path_exists { 
+                    path_exists.to_string().truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2) 
+                } else { 
+                    path_exists.to_string().truecolor(WARNING_COLOR_LUT[0].0, WARNING_COLOR_LUT[0].1, WARNING_COLOR_LUT[0].2)
+                }
             );
 
             println!("Time to process: {} s", elapsed.as_secs_f32().clamp(0.0001, 1000.0).to_string().bright_yellow());
@@ -197,12 +215,16 @@ fn main() -> std::io::Result<()>{
         } else if PRINT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             print_matrix(&world.world);
         } else if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
-            println!("\n{}", "Exiting...\n".red().bold());
+            println!("\n{}", "Exiting...\n".truecolor(WARNING_COLOR_LUT[0].0, WARNING_COLOR_LUT[0].1, WARNING_COLOR_LUT[0].2).bold());
             let _ = stdout().flush();
             break;
         }
         else {
-            println!("{}{}{}{}", WARNING_SYMBOL.bright_yellow().blink(), " The '".bright_yellow(), input.bold(), "' command does not exist.".bright_yellow());
+            println!("{}{}{}{}", 
+                WARNING_SYMBOL.truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2).blink(), 
+                " The '".truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2), 
+                input.bold(), 
+                "' command does not exist.".truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2));
             if show_commands { print_greeting_tutorial(); }
         }
     }

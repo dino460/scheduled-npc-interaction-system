@@ -17,7 +17,7 @@ use colored::*;
             ν => nightly -> early release, somewhere between beta and release, suitable to test new minor or major features
 */
 
-pub const VERSION_NUMBER  : &str      = "0.1.2.0";
+pub const VERSION_NUMBER  : &str      = "0.2.0.0";
 pub const VERSION_TYPES   : [&str; 4] = ["α", "β", "χ", "ν"];
 pub const CURRENT_VERSION : usize     = 0;
 
@@ -45,30 +45,82 @@ pub const SHOW_ALL_COMMANDS_OPTIONS  : [&str; 3] = ["show all", "shall", "sa"];
 pub const RESET_SCREEN_INPUT_OPTIONS : [&str; 3] = ["reset", "rst", "r"];
 
 pub const MATRIX_COLOR_LUT : [(u8, u8, u8); 5] = [
-    (255, 0  , 0),
-    (0  , 205, 0),
-    (160, 214, 0),
-    (215, 167, 0),
-    (246, 109, 0)
+    (255, 0  , 0  ), // RED
+    (133, 153, 0  ), // GREEN
+    (164, 115, 0  ), // YELLOW-GREEN
+    (194, 77 , 0  ), // ORANGE-GREEN
+    (246, 109, 0  ), // RUST
 ];
 
 
-pub fn print_matrix(matrix : &Vec<Vec<usize>>) {
+pub fn print_matrix(
+    matrix      : & Vec<Vec<usize>>,
+    destination : (usize, usize),
+    source      : (usize, usize),
+    path        : & Vec<(usize, usize)>
+) {
     // * Print the generated matrices for better visualization
     println!();
     println!("{}", "World matrix");
     for i in 0..matrix.len() {
         for j in 0..matrix.len() {
-            match matrix[i][j] {
+            let value = match matrix[i][j] {
                 // 0 => print!("{} ", matrix[i][j].to_string().red()),
                 // 1 => print!("{} ", matrix[i][j].to_string().green()),
                 // 2 => print!("{} ", matrix[i][j].to_string().blue()),
                 // 3 => print!("{} ", matrix[i][j].to_string().bright_yellow()),
                 // 4 => print!("{} ", matrix[i][j].to_string().bright_blue()),
-                value => print!("{} ", matrix[i][j]
+                value => value
+            };
+
+            if path.contains(&(i, j)) {
+                print!("{}", (matrix[i][j].to_string() + " ")
                     .to_string()
-                    .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2))
+                    .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
+                    .on_purple()
+                )
+            } else if (i, j) == source || (i, j) == destination{
+                print!("{}", (matrix[i][j].to_string() + " ")
+                    .to_string()
+                    .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
+                    .on_yellow()
+                )
+            } else if matrix[i][j] == 0 { 
+                print!("{}", (matrix[i][j].to_string() + " ")
+                    .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
+                    .on_red()
+                )
+            } else {
+                print!("{}", (matrix[i][j].to_string() + " ")
+                    .to_string()
+                    .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
+                )
             }
+
+            // if path.contains(&(i, j)) {
+            //     print!("{}", "  "
+            //         .to_string()
+            //         .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
+            //         .on_purple()
+            //     )
+            // } else if (i, j) == source || (i, j) == destination{
+            //     print!("{}", "  "
+            //         .to_string()
+            //         .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
+            //         .on_yellow()
+            //     )
+            // } else if matrix[i][j] == 0 { 
+            //     print!("{}", "  "
+            //         .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
+            //         .on_red()
+            //     )
+            // } else {
+            //     print!("{}", "  "
+            //         .to_string()
+            //         .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
+            //         .on_truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
+            //     )
+            // }
         }
         println!();
     }
@@ -113,7 +165,7 @@ pub fn print_greeting_tutorial() {
     // println!();
     println!("{}", "Input field:".bold());
     println!("\" {}{}{}{}{} \"", 
-        "[show map on gen|show commands] ".italic().green(), 
+        "[show map on gen|show commands|matrix size] ".italic().green(), 
         "(".italic().cyan(), 
         "input::type".italic().dimmed().cyan(), 
         "):".italic().cyan(), 

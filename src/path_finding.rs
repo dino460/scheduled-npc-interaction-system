@@ -3,11 +3,13 @@ use std::rc::Rc;
 
 
 pub fn pathfinder(
-	matrix : & Vec<Vec<usize>>, 
-	source : & Point, 
-	destination : &mut Point,
-	point_matrix : &mut Vec<Vec<Point>>,
-	use_diagonals : bool
+	matrix        : & Vec<Vec<usize>>,
+	weights       : & Vec<Vec<usize>>,
+	source        : & Point, 
+	destination   : &mut Point,
+	point_matrix  : &mut Vec<Vec<Point>>,
+	use_diagonals : bool,
+	use_weights   : bool
 	) -> bool {
 
 	let mut queue : Vec<Point> = vec![];
@@ -65,28 +67,36 @@ pub fn pathfinder(
 
 			if i > 0 {
 				if test_element.distance.unwrap() + 1 < point_matrix[(i - 1) as usize][j as usize].distance.unwrap() {
-					point_matrix[(i - 1) as usize][j as usize].distance = Some(test_element.distance.unwrap() + 1);
+					let weight_to_apply : i32 = if use_weights { weights[(i - 1) as usize][j as usize].try_into().unwrap() } else { 1 };
+
+					point_matrix[(i - 1) as usize][j as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
 					point_matrix[(i - 1) as usize][j as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 				}
 				queue.push(point_matrix[(i - 1) as usize][j as usize].clone());
 			}
 			if i + 1 < matrix.len() as i32 {
 				if test_element.distance.unwrap() + 1 < point_matrix[(i + 1) as usize][j as usize].distance.unwrap() {
-					point_matrix[(i + 1) as usize][j as usize].distance = Some(test_element.distance.unwrap() + 1);
+					let weight_to_apply : i32 = if use_weights { weights[(i + 1) as usize][j as usize].try_into().unwrap() } else { 1 };
+
+					point_matrix[(i + 1) as usize][j as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
 					point_matrix[(i + 1) as usize][j as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 				}
 				queue.push(point_matrix[(i + 1) as usize][j as usize].clone());
 			}
 			if j > 0 {
 				if test_element.distance.unwrap() + 1 < point_matrix[i as usize][(j - 1) as usize].distance.unwrap() {
-					point_matrix[i as usize][(j - 1) as usize].distance = Some(test_element.distance.unwrap() + 1);
+					let weight_to_apply : i32 = if use_weights { weights[i as usize][(j - 1) as usize].try_into().unwrap() } else { 1 };
+
+					point_matrix[i as usize][(j - 1) as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
 					point_matrix[i as usize][(j - 1) as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 				}
 				queue.push(point_matrix[i as usize][(j - 1) as usize].clone());
 			}
 			if j + 1 < matrix.len() as i32 {
 				if test_element.distance.unwrap() + 1 < point_matrix[i as usize][(j + 1) as usize].distance.unwrap() {
-					point_matrix[i as usize][(j + 1) as usize].distance = Some(test_element.distance.unwrap() + 1);
+					let weight_to_apply : i32 = if use_weights { weights[i as usize][(j + 1) as usize].try_into().unwrap() } else { 1 };
+
+					point_matrix[i as usize][(j + 1) as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
 					point_matrix[i as usize][(j + 1) as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 				}
 				queue.push(point_matrix[i as usize][(j + 1) as usize].clone());
@@ -95,28 +105,36 @@ pub fn pathfinder(
 			if use_diagonals {
 				if i > 0 && j > 0 {
 					if test_element.distance.unwrap() + 1 < point_matrix[(i - 1) as usize][(j - 1) as usize].distance.unwrap() {
-						point_matrix[(i - 1) as usize][(j - 1) as usize].distance = Some(test_element.distance.unwrap() + 1);
+						let weight_to_apply : i32 = if use_weights { weights[(i - 1) as usize][(j - 1) as usize].try_into().unwrap() } else { 1 };
+
+						point_matrix[(i - 1) as usize][(j - 1) as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
 						point_matrix[(i - 1) as usize][(j - 1) as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 					}
 					queue.push(point_matrix[(i - 1) as usize][(j - 1) as usize].clone());
 				}
 				if i > 0 && j + 1 < matrix.len() as i32 {
 					if test_element.distance.unwrap() + 1 < point_matrix[(i - 1) as usize][(j + 1) as usize].distance.unwrap() {
-						point_matrix[(i - 1) as usize][(j + 1) as usize].distance = Some(test_element.distance.unwrap() + 1);
+						let weight_to_apply : i32 = if use_weights { weights[(i - 1) as usize][(j + 1) as usize].try_into().unwrap() } else { 1 };
+
+						point_matrix[(i - 1) as usize][(j + 1) as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
 						point_matrix[(i - 1) as usize][(j + 1) as usize].previous = Some(Rc::new(point_matrix[i as usize][(j + 1) as usize].clone()));
 					}
 					queue.push(point_matrix[(i - 1) as usize][(j + 1) as usize].clone());
 				}
 				if i + 1 < matrix.len() as i32 && j > 0 {
 					if test_element.distance.unwrap() + 1 < point_matrix[(i + 1) as usize][(j - 1) as usize].distance.unwrap() {
-						point_matrix[(i + 1) as usize][(j - 1) as usize].distance = Some(test_element.distance.unwrap() + 1);
+						let weight_to_apply : i32 = if use_weights { weights[(i + 1) as usize][(j - 1) as usize].try_into().unwrap() } else { 1 };
+
+						point_matrix[(i + 1) as usize][(j - 1) as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
 						point_matrix[(i + 1) as usize][(j - 1) as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 					}
 					queue.push(point_matrix[(i + 1) as usize][(j - 1) as usize].clone());
 				}
 				if i + 1 < matrix.len() as i32 && j + 1 < matrix.len() as i32 {
 					if test_element.distance.unwrap() + 1 < point_matrix[(i + 1) as usize][(j + 1) as usize].distance.unwrap() {
-						point_matrix[(i + 1) as usize][(j + 1) as usize].distance = Some(test_element.distance.unwrap() + 1);
+						let weight_to_apply : i32 = if use_weights { weights[(i + 1) as usize][(j + 1) as usize].try_into().unwrap() } else { 1 };
+
+						point_matrix[(i + 1) as usize][(j + 1) as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
 						point_matrix[(i + 1) as usize][(j + 1) as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 					}
 					queue.push(point_matrix[(i + 1) as usize][(j + 1) as usize].clone());

@@ -11,7 +11,7 @@ use file_manipulation::*;
 use world_manipulation::*;
 
 use std::io::{self, stdout, Write};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 use colored::*;
 
 
@@ -24,18 +24,26 @@ fn main() -> std::io::Result<()>{
     let mut print_generation_result : bool = true;
     let mut show_commands : bool = true;
 
+    let mut source      : (usize, usize) = (0, 0);
+    let mut destination : (usize, usize) = (0, 0);
+    let mut path        : Vec<(usize, usize)> = vec![];
+
+
     //TODO: Make it possible to change weights during runtime
     //                              [0, 1]
     let job_distribution_weights  = [4, 1];
     let path_distribution_weights = [2, 1];
+
+    let weight_distribution_weights = [4, 3, 2, 1];
     
     let mut input : String = "".to_string();
     
     let mut world : World = World {
-            paths : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect(),
-            altered_paths : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect(),
-            jobs : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect(),
-            world : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect()
+            paths          : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect(),
+            smoothed_paths : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect(),
+            jobs           : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect(),
+            world          : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect(),
+            weights        : (0..matrix_size).map(|_| { (0..matrix_size).map(|_| 0).collect()}).collect()
         };
 
     print_title();
@@ -55,7 +63,7 @@ fn main() -> std::io::Result<()>{
 
         input = match read_input::<String>(
             input.clone(), 
-            &("[".to_string() + &hide_gen_indicator + "|" + &command_indication + "] "), 
+            &("[".to_string() + &hide_gen_indicator + "|" + &command_indication + "|" + &matrix_size.to_string() + "] "), 
             "<<< Type you command >>>".cyan().to_string().as_str()) 
         {
             Ok(value)  => value,
@@ -63,11 +71,26 @@ fn main() -> std::io::Result<()>{
         };
 
         if GENERATE_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
-            process_world_generation(&mut world, matrix_size, path_distribution_weights, job_distribution_weights, print_generation_result);
+
+            path.clear();
+            destination = (0, 0);
+            source = (0, 0);
+
+            let mut elapsed : Duration = Default::default();
+
+            process_world_generation(&mut world, matrix_size, weight_distribution_weights, path_distribution_weights, job_distribution_weights, &mut elapsed);
+
+
+            if print_generation_result { print_matrix(&world.world, destination, source, &path) }
+            println!("{} {} {} s", 
+                INFO_SYMBOL.truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2), 
+                "Generated successfully in".truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2), 
+                elapsed.as_secs_f32().to_string().bright_yellow());
+            println!();
 
         } else if SAVE_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             
-            let save_result = save_world_to_file(&world, input.clone());
+            let save_result = save_world_to_file(&world, input.clone(), matrix_size);
 
             match save_result {
                 Ok(value) => {
@@ -81,7 +104,7 @@ fn main() -> std::io::Result<()>{
 
         } else if LOAD_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
 
-            let load_result = load_world_from_file(&mut world, matrix_size, input.clone());
+            let load_result = load_world_from_file(&mut world, &mut matrix_size, input.clone());
 
             match load_result {
                 Ok(value) => {
@@ -95,11 +118,13 @@ fn main() -> std::io::Result<()>{
 
         } else if FIND_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
 
-            let x_source : usize =  match read_input::<usize>(input.clone(), "\t", "\t> Source X coordinate value:".yellow().to_string().as_str()) {
+            path.clear();
+
+            source.0 = match read_input::<usize>(input.clone(), "\t", "\t> Source X coordinate value:".yellow().to_string().as_str()) {
                 Ok(value) => value,
                 _         => continue,
             };
-            if x_source >= matrix_size {
+            if source.0 >= matrix_size {
                 println!("\t{} {} 0..{}", 
                     WARNING_SYMBOL.truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2).blink(), 
                     "Value out of bounds".truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2), 
@@ -108,11 +133,11 @@ fn main() -> std::io::Result<()>{
             }
             println!();
 
-            let y_source : usize =  match read_input::<usize>(input.clone(), "\t", "\t> Source Y coordinate value:".yellow().to_string().as_str()) {
+            source.1 =  match read_input::<usize>(input.clone(), "\t", "\t> Source Y coordinate value:".yellow().to_string().as_str()) {
                 Ok(value) => value,
                 _         => continue,
             };
-            if y_source >= matrix_size {
+            if source.1 >= matrix_size {
                 println!("\t{} {} 0..{}", 
                     WARNING_SYMBOL.truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2).blink(), 
                     "Value out of bounds".truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2), 
@@ -121,13 +146,11 @@ fn main() -> std::io::Result<()>{
             }
             println!();
 
-            world.world[x_source][y_source] = 2;
-
-            let x_dest : usize =  match read_input::<usize>(input.clone(), "\t", "\t> Destination X coordinate value:".yellow().to_string().as_str()) {
+            destination.0 = match read_input::<usize>(input.clone(), "\t", "\t> Destination X coordinate value:".yellow().to_string().as_str()) {
                 Ok(value) => value,
                 _         => continue,
             };
-            if x_dest >= matrix_size {
+            if destination.0 >= matrix_size {
                 println!("\t{} {} 0..{}", 
                     WARNING_SYMBOL.truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2).blink(), 
                     "Value out of bounds".truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2), 
@@ -136,11 +159,11 @@ fn main() -> std::io::Result<()>{
             }
             println!();
 
-            let y_dest : usize =  match read_input::<usize>(input.clone(), "\t", "\t> Destination Y coordinate value:".yellow().to_string().as_str()) {
+            destination.1 = match read_input::<usize>(input.clone(), "\t", "\t> Destination Y coordinate value:".yellow().to_string().as_str()) {
                 Ok(value) => value,
                 _         => continue,
             };
-            if y_dest >= matrix_size {
+            if destination.0 >= matrix_size {
                 println!("\t{} {} 0..{}", 
                     WARNING_SYMBOL.truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2).blink(), 
                     "Value out of bounds".truecolor(WARNING_COLOR_LUT[1].0, WARNING_COLOR_LUT[1].1, WARNING_COLOR_LUT[1].2), 
@@ -148,13 +171,17 @@ fn main() -> std::io::Result<()>{
                 continue;
             }
             println!();
-
-            world.world[x_dest][y_dest] = 4;
 
             //TODO: point_matrix can be moved inside pathfinding function
             let mut point_matrix : Vec<Vec<Point>> = (0..matrix_size).map(|_| { (0..matrix_size).map(|_| Point { i: None, j: None, distance: None, previous: None }).collect()}).collect();
-            let mut dest = Point { i: Some(x_dest as i32), j: Some(y_dest as i32), distance: None, previous: None };
+            let mut dest = Point { i: Some(destination.0 as i32), j: Some(destination.1 as i32), distance: None, previous: None };
 
+
+            let use_weights : bool = match read_input_to_bool(input.clone(), "\t", &("\t> Use weights? [y, yes | n, no]".yellow().to_string())) {
+                Ok(value) => value,
+                _         => continue,
+            };
+            println!();
 
             let use_diagonals : bool = match read_input_to_bool(input.clone(), "\t", &("\t> Compute diagonal movement? [y, yes | n, no]".yellow().to_string() + " (High performance impact)".red().to_string().as_str())) {
                 Ok(value) => value,
@@ -166,16 +193,18 @@ fn main() -> std::io::Result<()>{
             let now = Instant::now();
             let path_exists = path_finding::pathfinder(
                 &world.world, 
-                &Point { i: Some(x_source as i32), j: Some(y_source as i32), distance: None, previous: None }, 
+                &world.weights,
+                &Point { i: Some(source.0 as i32), j: Some(source.1 as i32), distance: None, previous: None }, 
                 &mut dest,
                 &mut point_matrix,
-                use_diagonals
+                use_diagonals,
+                use_weights
             );
             let elapsed = now.elapsed();
 
             println!("Path from ({}, {}) to ({}, {}) : {}", 
-                x_source, y_source,
-                x_dest, y_dest,
+                source.0, source.1,
+                destination.0, destination.1,
                 if path_exists { 
                     path_exists.to_string().truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2) 
                 } else { 
@@ -185,11 +214,11 @@ fn main() -> std::io::Result<()>{
 
             println!("Time to process: {} s", elapsed.as_secs_f32().clamp(0.0001, 1000.0).to_string().bright_yellow());
 
-            let mut path = dest.previous.clone();
+            let mut path_start = dest.previous.clone();
 
-            while path != None {
-                world.world[path.clone().unwrap().i.unwrap() as usize][path.clone().unwrap().j.unwrap() as usize] = 3;
-                path = path.unwrap().previous.clone();
+            while path_start != None {
+                path.push((path_start.clone().unwrap().i.unwrap() as usize, path_start.clone().unwrap().j.unwrap() as usize));
+                path_start = path_start.unwrap().previous.clone();
             }
         
         } else if SET_SIZE_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
@@ -197,6 +226,10 @@ fn main() -> std::io::Result<()>{
             matrix_size = read_input::<usize>(input.clone(), "", "> Type matrix size (matrix is always NxN)").unwrap(); /*input.parse::<usize>().unwrap()*/
 
             generate_zero_world(&mut world, matrix_size);
+
+            path.clear();
+            destination = (0, 0);
+            source = (0, 0);
 
         } else if SHOW_ALL_COMMANDS_OPTIONS.contains(&input.to_lowercase().as_str()) {
             print_all_commands();
@@ -213,7 +246,7 @@ fn main() -> std::io::Result<()>{
         } else if CLEAR_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             clear_screen();
         } else if PRINT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
-            print_matrix(&world.world);
+            print_matrix(&world.world, destination, source, &path);
         } else if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             println!("\n{}", "Exiting...\n".truecolor(WARNING_COLOR_LUT[0].0, WARNING_COLOR_LUT[0].1, WARNING_COLOR_LUT[0].2).bold());
             let _ = stdout().flush();

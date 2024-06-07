@@ -7,11 +7,11 @@ pub struct Job {
 
 #[derive(Debug)]
 pub struct World {
-    pub paths         : Vec<Vec<usize>>,
-    pub altered_paths : Vec<Vec<usize>>,
-    pub jobs          : Vec<Vec<usize>>,
-    pub world         : Vec<Vec<usize>>
-    //TODO: Make world reflect weighted search functionality
+    pub paths          : Vec<Vec<usize>>,
+    pub smoothed_paths : Vec<Vec<usize>>,
+    pub jobs           : Vec<Vec<usize>>,
+    pub weights        : Vec<Vec<usize>>,
+    pub world          : Vec<Vec<usize>>
 }
 
 #[derive(PartialEq)]
@@ -21,6 +21,5 @@ pub struct Point {
     pub i        : Option<i32>,
     pub j        : Option<i32>,
     pub distance : Option<i32>,
-    //TODO: Add weight parameter
     pub previous : Option<Rc<Point>>
 }

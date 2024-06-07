@@ -81,7 +81,7 @@ fn main() -> std::io::Result<()>{
             process_world_generation(&mut world, matrix_size, weight_distribution_weights, path_distribution_weights, job_distribution_weights, &mut elapsed);
 
 
-            if print_generation_result { print_matrix(&world.world, destination, source, &path) }
+            if print_generation_result { print_matrix_with_path(&world.world, destination, source, &path) }
             println!("{} {} {} s", 
                 INFO_SYMBOL.truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2), 
                 "Generated successfully in".truecolor(WARNING_COLOR_LUT[2].0, WARNING_COLOR_LUT[2].1, WARNING_COLOR_LUT[2].2), 
@@ -246,7 +246,7 @@ fn main() -> std::io::Result<()>{
         } else if CLEAR_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             clear_screen();
         } else if PRINT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
-            print_matrix(&world.world, destination, source, &path);
+            print_matrix_with_path(&world.world, destination, source, &path);
         } else if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
             println!("\n{}", "Exiting...\n".truecolor(WARNING_COLOR_LUT[0].0, WARNING_COLOR_LUT[0].1, WARNING_COLOR_LUT[0].2).bold());
             let _ = stdout().flush();

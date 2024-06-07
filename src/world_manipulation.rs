@@ -1,3 +1,4 @@
+use crate::print_matrix;
 use crate::World;
 use std::time::Duration;
 use std::time::Instant;
@@ -22,6 +23,9 @@ pub fn process_world_generation(
         smoothed_paths is the final matrix with the smoothing results
     */
     world.smoothed_paths = smooth_binary_matrix_ones(&world.paths, SMOOTH_PASS_MAX).clone();
+    // Blocks diagonal connections that would technically pass through walls
+    world.smoothed_paths = smooth_diagonals(& world.smoothed_paths).clone();
+    // Adds results of smoothing into world matrix
     world.world = sum_matrices(&world.smoothed_paths, &world.world).clone();
 
     for i in 0..world.weights.len() {

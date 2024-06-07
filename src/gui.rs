@@ -53,7 +53,7 @@ pub const MATRIX_COLOR_LUT : [(u8, u8, u8); 5] = [
 ];
 
 
-pub fn print_matrix(
+pub fn print_matrix_with_path(
     matrix      : & Vec<Vec<usize>>,
     destination : (usize, usize),
     source      : (usize, usize),
@@ -64,63 +64,56 @@ pub fn print_matrix(
     println!("{}", "World matrix");
     for i in 0..matrix.len() {
         for j in 0..matrix.len() {
-            let value = match matrix[i][j] {
-                // 0 => print!("{} ", matrix[i][j].to_string().red()),
-                // 1 => print!("{} ", matrix[i][j].to_string().green()),
-                // 2 => print!("{} ", matrix[i][j].to_string().blue()),
-                // 3 => print!("{} ", matrix[i][j].to_string().bright_yellow()),
-                // 4 => print!("{} ", matrix[i][j].to_string().bright_blue()),
-                value => value
-            };
 
             if path.contains(&(i, j)) {
                 print!("{}", (matrix[i][j].to_string() + " ")
                     .to_string()
-                    .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
+                    .truecolor(MATRIX_COLOR_LUT[matrix[i][j]].0, MATRIX_COLOR_LUT[matrix[i][j]].1, MATRIX_COLOR_LUT[matrix[i][j]].2)
                     .on_purple()
                 )
             } else if (i, j) == source || (i, j) == destination{
                 print!("{}", (matrix[i][j].to_string() + " ")
                     .to_string()
-                    .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
+                    .truecolor(MATRIX_COLOR_LUT[matrix[i][j]].0, MATRIX_COLOR_LUT[matrix[i][j]].1, MATRIX_COLOR_LUT[matrix[i][j]].2)
                     .on_yellow()
                 )
             } else if matrix[i][j] == 0 { 
                 print!("{}", (matrix[i][j].to_string() + " ")
-                    .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
+                    .truecolor(MATRIX_COLOR_LUT[matrix[i][j]].0, MATRIX_COLOR_LUT[matrix[i][j]].1, MATRIX_COLOR_LUT[matrix[i][j]].2)
                     .on_red()
                 )
             } else {
                 print!("{}", (matrix[i][j].to_string() + " ")
                     .to_string()
-                    .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
+                    .truecolor(MATRIX_COLOR_LUT[matrix[i][j]].0, MATRIX_COLOR_LUT[matrix[i][j]].1, MATRIX_COLOR_LUT[matrix[i][j]].2)
                 )
             }
+        }
+        println!();
+    }
+    println!();
+}
 
-            // if path.contains(&(i, j)) {
-            //     print!("{}", "  "
-            //         .to_string()
-            //         .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
-            //         .on_purple()
-            //     )
-            // } else if (i, j) == source || (i, j) == destination{
-            //     print!("{}", "  "
-            //         .to_string()
-            //         .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
-            //         .on_yellow()
-            //     )
-            // } else if matrix[i][j] == 0 { 
-            //     print!("{}", "  "
-            //         .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
-            //         .on_red()
-            //     )
-            // } else {
-            //     print!("{}", "  "
-            //         .to_string()
-            //         .truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
-            //         .on_truecolor(MATRIX_COLOR_LUT[value].0, MATRIX_COLOR_LUT[value].1, MATRIX_COLOR_LUT[value].2)
-            //     )
-            // }
+pub fn print_matrix(
+    matrix : & Vec<Vec<usize>>
+) {
+    // * Print the generated matrices for better visualization
+    println!();
+    println!("{}", "World matrix");
+    for i in 0..matrix.len() {
+        for j in 0..matrix.len() {
+
+            if matrix[i][j] == 0 { 
+                print!("{}", (matrix[i][j].to_string() + " ")
+                    .truecolor(MATRIX_COLOR_LUT[matrix[i][j]].0, MATRIX_COLOR_LUT[matrix[i][j]].1, MATRIX_COLOR_LUT[matrix[i][j]].2)
+                    .on_red()
+                )
+            } else {
+                print!("{}", (matrix[i][j].to_string() + " ")
+                    .to_string()
+                    .truecolor(MATRIX_COLOR_LUT[matrix[i][j]].0, MATRIX_COLOR_LUT[matrix[i][j]].1, MATRIX_COLOR_LUT[matrix[i][j]].2)
+                )
+            }
         }
         println!();
     }

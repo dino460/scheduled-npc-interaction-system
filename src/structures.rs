@@ -22,7 +22,7 @@ pub struct World {
 pub struct Point {
     pub i        : Option<i32>,
     pub j        : Option<i32>,
-    pub distance : Option<i32>,
+    pub distance : Option<f32>,
     pub previous : Option<Rc<Point>>
 }
 
@@ -31,12 +31,19 @@ pub struct Benchmark {
     pub matrix_size   : Option<usize>,
     pub building_time : Option<f32>,
     pub finding_time  : Option<f32>,
+    pub heuristic_d   : Option<f32>
 }
 
 impl fmt::Display for Benchmark {
         
     fn fmt(&self, f : &mut fmt::Formatter) -> fmt::Result {
 
-        write!(f, "Matrix size: {}\n Gen time: {}\n Find time: {}", self.matrix_size.unwrap(), self.building_time.unwrap(), self.finding_time.unwrap())
+        write!(
+            f, "Matrix size: {}\n Gen time: {}\n Find time: {}\n D: {}", 
+            self.matrix_size.unwrap(), 
+            self.building_time.unwrap(), 
+            self.finding_time.unwrap(),
+            self.heuristic_d.unwrap()
+        )
     }
 }

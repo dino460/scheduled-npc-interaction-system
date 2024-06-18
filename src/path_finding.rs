@@ -8,7 +8,8 @@ pub fn pathfinder(
 	source        : & Point, 
 	destination   : &mut  Point,
 	use_diagonals : bool,
-	use_weights   : bool
+	use_weights   : bool,
+	heuristic_d   : f32
 	) -> bool {
 
 	let mut queue : Vec<Point> = vec![];
@@ -21,9 +22,9 @@ pub fn pathfinder(
 				i : Some(i as i32), 
 				j : Some(j as i32), 
 				distance : if i == source.i.unwrap() as usize && j == source.j.unwrap() as usize {
-							Some(0)
+							Some(0.0)
 						} else {
-							Some(1000000)
+							Some(1000000.0)
 						},
 				previous : None
 			};
@@ -65,37 +66,37 @@ pub fn pathfinder(
 			matrix_editable[i as usize][j as usize] = 0;
 
 			if i > 0 {
-				if test_element.distance.unwrap() + (heuristic(&test_element, &destination, 1.0) as i32) < point_matrix[(i - 1) as usize][j as usize].distance.unwrap() {
-					let weight_to_apply : i32 = if use_weights { weights[(i - 1) as usize][j as usize].try_into().unwrap() } else { 1 };
+				if test_element.distance.unwrap() + heuristic(&test_element, &source, heuristic_d) + 1.0 < point_matrix[(i - 1) as usize][j as usize].distance.unwrap() {
+					let weight_to_apply : f32 = if use_weights { weights[(i - 1) as usize][j as usize] as f32 } else { 1.0 };
 
-					point_matrix[(i - 1) as usize][j as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
+					point_matrix[(i - 1) as usize][j as usize].distance = Some(test_element.distance.unwrap() + 1.0 * weight_to_apply);
 					point_matrix[(i - 1) as usize][j as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 					queue.push(point_matrix[(i - 1) as usize][j as usize].clone());
 				}
 			}
 			if i + 1 < matrix.len() as i32 {
-				if test_element.distance.unwrap() + (heuristic(&test_element, &destination, 1.0) as i32) < point_matrix[(i + 1) as usize][j as usize].distance.unwrap() {
-					let weight_to_apply : i32 = if use_weights { weights[(i + 1) as usize][j as usize].try_into().unwrap() } else { 1 };
+				if test_element.distance.unwrap() + heuristic(&test_element, &source, heuristic_d) + 1.0 < point_matrix[(i + 1) as usize][j as usize].distance.unwrap() {
+					let weight_to_apply : f32 = if use_weights { weights[(i + 1) as usize][j as usize] as f32 } else { 1.0 };
 
-					point_matrix[(i + 1) as usize][j as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
+					point_matrix[(i + 1) as usize][j as usize].distance = Some(test_element.distance.unwrap() + 1.0 * weight_to_apply);
 					point_matrix[(i + 1) as usize][j as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 					queue.push(point_matrix[(i + 1) as usize][j as usize].clone());
 				}
 			}
 			if j > 0 {
-				if test_element.distance.unwrap() + (heuristic(&test_element, &destination, 1.0) as i32) < point_matrix[i as usize][(j - 1) as usize].distance.unwrap() {
-					let weight_to_apply : i32 = if use_weights { weights[i as usize][(j - 1) as usize].try_into().unwrap() } else { 1 };
+				if test_element.distance.unwrap() + heuristic(&test_element, &source, heuristic_d) + 1.0 < point_matrix[i as usize][(j - 1) as usize].distance.unwrap() {
+					let weight_to_apply : f32 = if use_weights { weights[i as usize][(j - 1) as usize] as f32 } else { 1.0 };
 
-					point_matrix[i as usize][(j - 1) as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
+					point_matrix[i as usize][(j - 1) as usize].distance = Some(test_element.distance.unwrap() + 1.0 * weight_to_apply);
 					point_matrix[i as usize][(j - 1) as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 					queue.push(point_matrix[i as usize][(j - 1) as usize].clone());
 				}
 			}
 			if j + 1 < matrix.len() as i32 {
-				if test_element.distance.unwrap() + (heuristic(&test_element, &destination, 1.0) as i32) < point_matrix[i as usize][(j + 1) as usize].distance.unwrap() {
-					let weight_to_apply : i32 = if use_weights { weights[i as usize][(j + 1) as usize].try_into().unwrap() } else { 1 };
+				if test_element.distance.unwrap() + heuristic(&test_element, &source, heuristic_d) + 1.0 < point_matrix[i as usize][(j + 1) as usize].distance.unwrap() {
+					let weight_to_apply : f32 = if use_weights { weights[i as usize][(j + 1) as usize] as f32 } else { 1.0 };
 
-					point_matrix[i as usize][(j + 1) as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
+					point_matrix[i as usize][(j + 1) as usize].distance = Some(test_element.distance.unwrap() + 1.0 * weight_to_apply);
 					point_matrix[i as usize][(j + 1) as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 					queue.push(point_matrix[i as usize][(j + 1) as usize].clone());
 				}
@@ -104,37 +105,37 @@ pub fn pathfinder(
 			// TODO: make heuristics for 8-directional movement
 			if use_diagonals {
 				if i > 0 && j > 0 {
-					if test_element.distance.unwrap() + 1 < point_matrix[(i - 1) as usize][(j - 1) as usize].distance.unwrap() {
-						let weight_to_apply : i32 = if use_weights { weights[(i - 1) as usize][(j - 1) as usize].try_into().unwrap() } else { 1 };
+					if test_element.distance.unwrap() + 1.0 < point_matrix[(i - 1) as usize][(j - 1) as usize].distance.unwrap() {
+						let weight_to_apply : f32 = if use_weights { weights[(i - 1) as usize][(j - 1) as usize] as f32 } else { 1.0 };
 
-						point_matrix[(i - 1) as usize][(j - 1) as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
+						point_matrix[(i - 1) as usize][(j - 1) as usize].distance = Some(test_element.distance.unwrap() + 1.0 * weight_to_apply);
 						point_matrix[(i - 1) as usize][(j - 1) as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 					}
 					queue.push(point_matrix[(i - 1) as usize][(j - 1) as usize].clone());
 				}
 				if i > 0 && j + 1 < matrix.len() as i32 {
-					if test_element.distance.unwrap() + 1 < point_matrix[(i - 1) as usize][(j + 1) as usize].distance.unwrap() {
-						let weight_to_apply : i32 = if use_weights { weights[(i - 1) as usize][(j + 1) as usize].try_into().unwrap() } else { 1 };
+					if test_element.distance.unwrap() + 1.0 < point_matrix[(i - 1) as usize][(j + 1) as usize].distance.unwrap() {
+						let weight_to_apply : f32 = if use_weights { weights[(i - 1) as usize][(j + 1) as usize] as f32 } else { 1.0 };
 
-						point_matrix[(i - 1) as usize][(j + 1) as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
+						point_matrix[(i - 1) as usize][(j + 1) as usize].distance = Some(test_element.distance.unwrap() + 1.0 * weight_to_apply);
 						point_matrix[(i - 1) as usize][(j + 1) as usize].previous = Some(Rc::new(point_matrix[i as usize][(j + 1) as usize].clone()));
 					}
 					queue.push(point_matrix[(i - 1) as usize][(j + 1) as usize].clone());
 				}
 				if i + 1 < matrix.len() as i32 && j > 0 {
-					if test_element.distance.unwrap() + 1 < point_matrix[(i + 1) as usize][(j - 1) as usize].distance.unwrap() {
-						let weight_to_apply : i32 = if use_weights { weights[(i + 1) as usize][(j - 1) as usize].try_into().unwrap() } else { 1 };
+					if test_element.distance.unwrap() + 1.0 < point_matrix[(i + 1) as usize][(j - 1) as usize].distance.unwrap() {
+						let weight_to_apply : f32 = if use_weights { weights[(i + 1) as usize][(j - 1) as usize] as f32 } else { 1.0 };
 
-						point_matrix[(i + 1) as usize][(j - 1) as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
+						point_matrix[(i + 1) as usize][(j - 1) as usize].distance = Some(test_element.distance.unwrap() + 1.0 * weight_to_apply);
 						point_matrix[(i + 1) as usize][(j - 1) as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 					}
 					queue.push(point_matrix[(i + 1) as usize][(j - 1) as usize].clone());
 				}
 				if i + 1 < matrix.len() as i32 && j + 1 < matrix.len() as i32 {
-					if test_element.distance.unwrap() + 1 < point_matrix[(i + 1) as usize][(j + 1) as usize].distance.unwrap() {
-						let weight_to_apply : i32 = if use_weights { weights[(i + 1) as usize][(j + 1) as usize].try_into().unwrap() } else { 1 };
+					if test_element.distance.unwrap() + 1.0 < point_matrix[(i + 1) as usize][(j + 1) as usize].distance.unwrap() {
+						let weight_to_apply : f32 = if use_weights { weights[(i + 1) as usize][(j + 1) as usize] as f32 } else { 1.0 };
 
-						point_matrix[(i + 1) as usize][(j + 1) as usize].distance = Some(test_element.distance.unwrap() + 1 * weight_to_apply);
+						point_matrix[(i + 1) as usize][(j + 1) as usize].distance = Some(test_element.distance.unwrap() + 1.0 * weight_to_apply);
 						point_matrix[(i + 1) as usize][(j + 1) as usize].previous = Some(Rc::new(point_matrix[i as usize][j as usize].clone()));
 					}
 					queue.push(point_matrix[(i + 1) as usize][(j + 1) as usize].clone());
@@ -152,8 +153,9 @@ fn heuristic(
 	destination : & Point,
 	d           : f32
 ) -> f32 {
-	return d * (
-		((current.i.unwrap() as f32) - (destination.i.unwrap() as f32)).abs() + 
-		((current.j.unwrap() as f32) - (destination.j.unwrap() as f32)).abs()
-	);
+
+	let dx = ((current.i.unwrap() as f32) - (destination.i.unwrap() as f32)).abs();
+	let dy = ((current.j.unwrap() as f32) - (destination.j.unwrap() as f32)).abs();
+
+	return d * (dx + dy);
 }

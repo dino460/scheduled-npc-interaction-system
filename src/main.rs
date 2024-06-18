@@ -197,7 +197,8 @@ fn main() -> std::io::Result<()>{
                 &Point { i: Some(source.0 as i32), j: Some(source.1 as i32), distance: None, previous: None }, 
                 &mut dest,
                 use_diagonals,
-                use_weights
+                use_weights,
+                1.0
             );
             let elapsed = now.elapsed();
 
@@ -233,7 +234,7 @@ fn main() -> std::io::Result<()>{
         } else if BENCHMARK_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
 
             let now = Instant::now();
-            let benchmarks : Vec<Benchmark> = benchmark_all(&mut world, 100, 30, 80, false, weight_distribution_weights, path_distribution_weights, job_distribution_weights);
+            let benchmarks : Vec<Benchmark> = benchmark_all(&mut world, 2000, 50, 51, false, 0.6, 0.7, 0.01, weight_distribution_weights, path_distribution_weights, job_distribution_weights);
             let elapsed = now.elapsed();
 
             println!("\nTotal benchmark time: {}\n", elapsed.as_secs_f32().clamp(0.0001, 1000.0));

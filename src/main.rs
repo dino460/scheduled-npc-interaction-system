@@ -4,14 +4,16 @@ mod gui;
 mod structures;
 mod file_manipulation;
 mod world_manipulation;
+mod tests;
 
+use tests::*;
 use gui::*;
 use structures::*;
 use file_manipulation::*;
 use world_manipulation::*;
 
 use std::io::{self, stdout, Write};
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use colored::*;
 
 
@@ -76,9 +78,10 @@ fn main() -> std::io::Result<()>{
             destination = (0, 0);
             source = (0, 0);
 
-            let mut elapsed : Duration = Default::default();
 
-            process_world_generation(&mut world, matrix_size, weight_distribution_weights, path_distribution_weights, job_distribution_weights, &mut elapsed);
+            let now = Instant::now(); 
+            process_world_generation(&mut world, matrix_size, weight_distribution_weights, path_distribution_weights, job_distribution_weights);
+            let elapsed = now.elapsed();
 
 
             if print_generation_result { print_matrix_with_path(&world.world, destination, source, &path) }
@@ -172,10 +175,7 @@ fn main() -> std::io::Result<()>{
             }
             println!();
 
-            //TODO: point_matrix can be moved inside pathfinding function
-            let mut point_matrix : Vec<Vec<Point>> = (0..matrix_size).map(|_| { (0..matrix_size).map(|_| Point { i: None, j: None, distance: None, previous: None }).collect()}).collect();
             let mut dest = Point { i: Some(destination.0 as i32), j: Some(destination.1 as i32), distance: None, previous: None };
-
 
             let use_weights : bool = match read_input_to_bool(input.clone(), "\t", &("\t> Use weights? [y, yes | n, no]".yellow().to_string())) {
                 Ok(value) => value,
@@ -196,7 +196,6 @@ fn main() -> std::io::Result<()>{
                 &world.weights,
                 &Point { i: Some(source.0 as i32), j: Some(source.1 as i32), distance: None, previous: None }, 
                 &mut dest,
-                &mut point_matrix,
                 use_diagonals,
                 use_weights
             );
@@ -230,6 +229,20 @@ fn main() -> std::io::Result<()>{
             path.clear();
             destination = (0, 0);
             source = (0, 0);
+
+        } else if BENCHMARK_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
+
+            let now = Instant::now();
+            let benchmarks : Vec<Benchmark> = benchmark_all(&mut world, 100, 30, 80, false, weight_distribution_weights, path_distribution_weights, job_distribution_weights);
+            let elapsed = now.elapsed();
+
+            println!("\nTotal benchmark time: {}\n", elapsed.as_secs_f32().clamp(0.0001, 1000.0));
+            for benchmark in benchmarks {
+                println!("{}\n", benchmark);
+            }
+            println!();
+
+            matrix_size = world.world.len();
 
         } else if SHOW_ALL_COMMANDS_OPTIONS.contains(&input.to_lowercase().as_str()) {
             print_all_commands();

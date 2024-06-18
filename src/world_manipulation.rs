@@ -1,7 +1,4 @@
-use crate::print_matrix;
 use crate::World;
-use std::time::Duration;
-use std::time::Instant;
 use crate::matrix_generator::*;
 use crate::SMOOTH_PASS_MAX;
 
@@ -12,9 +9,7 @@ pub fn process_world_generation(
     weight_distribution_weights : [usize; 4], 
     path_distribution_weights : [usize; 2], 
     job_distribution_weights : [usize; 2],
-    elapsed : &mut Duration
 ) {
-    let now = Instant::now();
     generate_world(&mut world, matrix_size, weight_distribution_weights, path_distribution_weights, job_distribution_weights);
 
     /*
@@ -35,8 +30,6 @@ pub fn process_world_generation(
             }
         }
     }
-
-    *elapsed = now.elapsed();
 }
 
 fn generate_world(

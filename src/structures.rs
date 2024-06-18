@@ -1,4 +1,6 @@
 use std::rc::Rc;
+use std::fmt;
+
 
 #[derive(Clone, Copy, Debug)]
 pub struct Job {
@@ -22,4 +24,19 @@ pub struct Point {
     pub j        : Option<i32>,
     pub distance : Option<i32>,
     pub previous : Option<Rc<Point>>
+}
+
+#[derive(Debug)]
+pub struct Benchmark {
+    pub matrix_size   : Option<usize>,
+    pub building_time : Option<f32>,
+    pub finding_time  : Option<f32>,
+}
+
+impl fmt::Display for Benchmark {
+        
+    fn fmt(&self, f : &mut fmt::Formatter) -> fmt::Result {
+
+        write!(f, "Matrix size: {}\n Gen time: {}\n Find time: {}", self.matrix_size.unwrap(), self.building_time.unwrap(), self.finding_time.unwrap())
+    }
 }

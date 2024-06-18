@@ -17,7 +17,7 @@ use colored::*;
             ν => nightly -> early release, somewhere between beta and release, suitable to test new minor or major features
 */
 
-pub const VERSION_NUMBER  : &str      = "0.2.1.0";
+pub const VERSION_NUMBER  : &str      = "0.3.0.0";
 pub const VERSION_TYPES   : [&str; 4] = ["α", "β", "χ", "ν"];
 pub const CURRENT_VERSION : usize     = 0;
 
@@ -43,6 +43,7 @@ pub const HIDE_GEN_INPUT_OPTIONS     : [&str; 4] = ["hide gen", "hidegen", "hg",
 pub const HIDE_COMMAND_OPTIONS       : [&str; 5] = ["hide cmd", "hidecmd", "hc", "hidc", "hidcmd"];
 pub const SHOW_ALL_COMMANDS_OPTIONS  : [&str; 3] = ["show all", "shall", "sa"];
 pub const RESET_SCREEN_INPUT_OPTIONS : [&str; 3] = ["reset", "rst", "r"];
+pub const BENCHMARK_INPUT_OPTIONS    : [&str; 4] = ["test", "bench", "t", "b"];
 
 pub const MATRIX_COLOR_LUT : [(u8, u8, u8); 5] = [
     (255, 0  , 0  ), // RED
@@ -71,7 +72,7 @@ pub fn print_matrix_with_path(
                     .truecolor(MATRIX_COLOR_LUT[matrix[i][j]].0, MATRIX_COLOR_LUT[matrix[i][j]].1, MATRIX_COLOR_LUT[matrix[i][j]].2)
                     .on_purple()
                 )
-            } else if (i, j) == source || (i, j) == destination{
+            } else if (i, j) == source || (i, j) == destination {
                 print!("{}", (matrix[i][j].to_string() + " ")
                     .to_string()
                     .truecolor(MATRIX_COLOR_LUT[matrix[i][j]].0, MATRIX_COLOR_LUT[matrix[i][j]].1, MATRIX_COLOR_LUT[matrix[i][j]].2)
@@ -94,6 +95,7 @@ pub fn print_matrix_with_path(
     println!();
 }
 
+#[allow(dead_code)]
 pub fn print_matrix(
     matrix : & Vec<Vec<usize>>
 ) {
@@ -121,7 +123,7 @@ pub fn print_matrix(
 }
 
 pub fn print_title() {
-    clear_screen();
+    // clear_screen();
     println!();
     println!("{}", "███████╗███╗   ██╗██╗███████╗".bright_red());
     println!("{}", "██╔════╝████╗  ██║██║██╔════╝".bright_red());

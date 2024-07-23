@@ -17,7 +17,7 @@ use colored::*;
             ν => nightly -> early release, somewhere between beta and release, suitable to test new minor or major features
 */
 
-pub const VERSION_NUMBER  : &str      = "0.3.0.1";
+pub const VERSION_NUMBER  : &str      = "0.3.1.0";
 pub const VERSION_TYPES   : [&str; 4] = ["α", "β", "χ", "ν"];
 pub const CURRENT_VERSION : usize     = 0;
 

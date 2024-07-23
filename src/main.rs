@@ -198,7 +198,7 @@ fn main() -> std::io::Result<()>{
                 &mut dest,
                 use_diagonals,
                 use_weights,
-                1.0
+                0.3
             );
             let elapsed = now.elapsed();
 
@@ -287,10 +287,14 @@ fn read_input<T: std::str::FromStr + 'static>(
     
     println!("{}", pre_text);
     print!("{}({}): ", at_text, std::any::type_name::<T>().to_string().italic().dimmed());
+    
     let _ = stdout().flush();
     input.clear();
+    
     io::stdin().read_line(&mut input).expect("failed to read line");
+    
     input.pop();
+    if cfg!(windows) { input.pop(); }
 
     if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) { 
         return Result::Err(EXIT_INPUT_OPTIONS[0]);
@@ -308,10 +312,14 @@ fn read_input_to_bool(mut input : String, at_text : &str, pre_text : &str) -> Re
     
     println!("{}", pre_text);
     print!("{}({}): ", at_text, std::any::type_name::<bool>().to_string().italic().dimmed());
+    
     let _ = stdout().flush();
     input.clear();
+    
     io::stdin().read_line(&mut input).expect("failed to read line");
+    
     input.pop();
+    if cfg!(windows) { input.pop(); }
 
     if EXIT_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) { 
         return Result::Err(EXIT_INPUT_OPTIONS[0]);

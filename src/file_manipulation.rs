@@ -95,7 +95,15 @@ pub fn load_world_from_file(
     };
     let mut contents : String = String::new();
     file.expect("REASON").read_to_string(&mut contents)?;
-    let mut content_vec : Vec<&str> = contents.split("\n").collect();
+    
+    let mut content_vec : Vec<&str>;
+
+    if cfg!(windows) {
+        content_vec = contents.split("\r\n").collect();
+    } else {
+        content_vec = contents.split("\n").collect();    
+    }
+    
 
     *matrix_size = content_vec[0].parse::<usize>().unwrap();
     content_vec.remove(0);

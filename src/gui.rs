@@ -123,7 +123,7 @@ pub fn print_matrix(
 }
 
 pub fn print_title() {
-    // clear_screen();
+    clear_screen();
     println!();
     println!("{}", "███████╗███╗   ██╗██╗███████╗".bright_red());
     println!("{}", "██╔════╝████╗  ██║██║██╔════╝".bright_red());
@@ -189,5 +189,9 @@ pub fn print_all_commands() {
 }
 
 pub fn clear_screen() {
-    std::process::Command::new("clear").status().unwrap();
+    if cfg!(windows) { 
+        print!("\x1B[2J\x1B[1;1H");
+    } else {
+        std::process::Command::new("clear").status().unwrap();
+    }
 }

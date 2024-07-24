@@ -1,5 +1,6 @@
 use std::rc::Rc;
 use std::fmt;
+use std::time::Duration;
 
 
 #[derive(Clone, Copy, Debug)]
@@ -46,4 +47,12 @@ impl fmt::Display for Benchmark {
             self.heuristic_d.unwrap()
         )
     }
+}
+
+pub struct NPC {
+    pub position         : usize,
+    pub path             : Vec<(usize, usize)>,
+    pub pathfinding_time : Duration,
+    pub speed            : f32,
+    pub timer            : f32
 }

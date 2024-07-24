@@ -17,7 +17,7 @@ use colored::*;
             ν => nightly -> early release, somewhere between beta and release, suitable to test new minor or major features
 */
 
-pub const VERSION_NUMBER  : &str      = "0.3.1.0";
+pub const VERSION_NUMBER  : &str      = "0.3.2.0";
 pub const VERSION_TYPES   : [&str; 4] = ["α", "β", "χ", "ν"];
 pub const CURRENT_VERSION : usize     = 0;
 
@@ -44,6 +44,7 @@ pub const HIDE_COMMAND_OPTIONS       : [&str; 5] = ["hide cmd", "hidecmd", "hc",
 pub const SHOW_ALL_COMMANDS_OPTIONS  : [&str; 3] = ["show all", "shall", "sa"];
 pub const RESET_SCREEN_INPUT_OPTIONS : [&str; 3] = ["reset", "rst", "r"];
 pub const BENCHMARK_INPUT_OPTIONS    : [&str; 4] = ["test", "bench", "t", "b"];
+pub const RUN_INPUT_OPTIONS          : [&str; 2] = ["run", "r"];
 
 pub const MATRIX_COLOR_LUT : [(u8, u8, u8); 5] = [
     (255, 0  , 0  ), // RED
@@ -61,8 +62,8 @@ pub fn print_matrix_with_path(
     path        : & Vec<(usize, usize)>
 ) {
     // * Print the generated matrices for better visualization
-    println!();
-    println!("{}", "World matrix");
+    // println!();
+    // println!("{}", "World matrix");
     for i in 0..matrix.len() {
         for j in 0..matrix.len() {
 
@@ -92,7 +93,7 @@ pub fn print_matrix_with_path(
         }
         println!();
     }
-    println!();
+    // println!();
 }
 
 #[allow(dead_code)]
@@ -190,7 +191,8 @@ pub fn print_all_commands() {
 
 pub fn clear_screen() {
     if cfg!(windows) { 
-        print!("\x1B[2J\x1B[1;1H");
+        // print!("\x1B[2J\x1B[1;1H");
+        print!("{esc}c", esc = 27 as char);
     } else {
         std::process::Command::new("clear").status().unwrap();
     }

@@ -1,10 +1,11 @@
-mod matrix_generator;
-mod path_finding;
 mod gui;
+mod tests;
 mod structures;
+mod path_finding;
+mod run_routines;
+mod matrix_generator;
 mod file_manipulation;
 mod world_manipulation;
-mod tests;
 
 use tests::*;
 use gui::*;
@@ -220,6 +221,15 @@ fn main() -> std::io::Result<()>{
                 path.push((path_start.clone().unwrap().i.unwrap() as usize, path_start.clone().unwrap().j.unwrap() as usize));
                 path_start = path_start.unwrap().previous.clone();
             }
+
+            let npc_37 : NPC = NPC { 
+                position         : path.len() - 1, 
+                path             : path.clone(), 
+                pathfinding_time : elapsed,
+                speed            : 4.0,
+                timer            : 0.0
+            };
+            run_routines::run(&world.world, &mut vec![npc_37], 15);
         
         } else if SET_SIZE_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
 
@@ -265,6 +275,10 @@ fn main() -> std::io::Result<()>{
             println!("\n{}", "Exiting...\n".truecolor(WARNING_COLOR_LUT[0].0, WARNING_COLOR_LUT[0].1, WARNING_COLOR_LUT[0].2).bold());
             let _ = stdout().flush();
             break;
+        } else if RUN_INPUT_OPTIONS.contains(&input.to_lowercase().as_str()) {
+            println!("Work in progress");
+            // let npc_37 : NPC = NPC { position: 0, path: (), pathfinding_time: () }
+            // run_routines::run(world.world, );
         }
         else {
             println!("{}{}{}{}", 

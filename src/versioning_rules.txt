@@ -1,0 +1,14 @@
+VERSIONING RULES:
+    Scheduled NPC Interaction System v[W.X.Y.Z](greek letter)
+        v : decoration -> stands for "version"
+
+        W : major version/revision/rework
+        X : major feature drop
+        Y : minor feature drop/major bug fix drop
+        Z : minor changes/ minor bug fixes
+
+        greek letter : denotes software/branch major state
+            α => alpha   -> early production, main features not fully implemented and unsuitable for proper use
+            β => beta    -> pre-release, main features implemented but not fully tested, may lack some minor features
+            χ => release -> full release, ready for production and roll-out
+            ν => nightly -> early release, somewhere between beta and release, suitable to test new minor or major features
